@@ -1,54 +1,58 @@
+import axios from "axios";
 import React from "react";
+import Movie from "./Movie";
+import './App.css';
 
 class App extends React.Component {
-  //React.Component 클래스의 기능을 추가한 App 클래스
-
-  
-  constructor(props) {
-    super(props);
-    console.log('hello'); //render() 보다 먼저 실행!
-  }
-  
   state = {
-    count: 0,
-  };
-  
-  add = () => {
-    this.setState(current => ({ //current에는 현재 state가 넘어온다.
-      count: current.count +1
-    }));
-  };
-  
-  minus = () => {
-    this.setState(current => ({
-      count: current.count -1
-      
-    }));
+    isLoading: true,
+    movies: [],
   };
 
-  componentDidMount(){
-    console.log('component rendered');
-  }
-  
-  componentDidUpdate(){
-    console.log('I just updated');
-  }
+  getMovies = async () => {
+    //async와 await는 짝꿍! 동시에 사용해야 함
+    const {
+      data: {
+        data: { movies },
+      },
+    } = await axios.get(
+      "https://yts-proxy.now.sh/list_movies.json?sort_by=rating"
+    );
+    // console.log(movies);
+    this.setState({ movies, isLoading: false });
+  };
 
-  componentWillUnmount(){
-    console.log('Goodbye, cruel world');
+  componentDidMount() {
+    this.getMovies();
   }
 
   render() {
-    console.log("I'm rendering");
+    const { isLoading, movies } = this.state;
     return (
-      <div>
-        <h1>The number is: {this.state.count}</h1>
-        <button onClick={this.add}>Add</button>
-        <button onClick={this.minus}>Minus</button>
-      </div>
-
-);
-}
+      <section className="container">
+        {isLoading ? (
+          <div className="loader">
+            <span className="loader__text">Loading...</span>
+          </div>
+        ) : (
+          <div className="movies">
+            {movies.map((movie) => (
+              // console.log(movie);
+              <Movie
+                key={movie.id}
+                id={movie.id}
+                year={movie.year}
+                title={movie.title}
+                summary={movie.summary}
+                poster={movie.medium_cover_image}
+                genres={movie.genres}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  }
 }
 
 export default App;
